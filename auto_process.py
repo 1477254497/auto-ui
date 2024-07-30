@@ -2,13 +2,21 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 import unittest
 import time
-import ddddocr
 from PIL import Image
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from get_email import ReceiveEmail 
+import ddddocr
+import sys
 # 参数设置
 MAX_OCR_NUM = 10  # OCR最大重新识别次数
+
+def dynamic_text(text, delay=0.2):
+    for char in text:
+        sys.stdout.write(char)
+        sys.stdout.flush()
+        time.sleep(delay)
+    print()  # 换行
 
 def fill_general_info(driver, userName, userPassword):
     """_summary_
@@ -114,7 +122,7 @@ def login_process(driver, userName, userPassword):
     driver.get("http://10.143.28.206:23007/portal/#/login")
     fill_general_info(driver, userName, userPassword)
     status = apply_ocr(driver, is_first=True)
-    for i in range(MAX_OCR_NUM):
+    for _ in range(MAX_OCR_NUM):
         if status:
             break
         status = apply_ocr(driver)
@@ -221,13 +229,12 @@ class AppDynamicsJob(unittest.TestCase):
         self.userPassword = input("请输入密码: ")
         ReceiveEmail.user_email = input("请输入qq邮箱：")
         ReceiveEmail.user_email_server_passward = input("请输入IMAP/SMTP服务密码：")
-        print("=========正在登陆...==========")
-        self.driver = webdriver.Edge()
-        self.driver.implicitly_wait(60)
-        # input("-=============按任意键=============")
-        self.base_url = "https://www.google.com/"
+        # print("=========正在登陆...==========")
+        dynamic_text("请稍后，正在登录...")
         self.verificationErrors = []
         self.accept_next_alert = True
+        self.driver = webdriver.Edge()
+        self.driver.implicitly_wait(20)
 
     def test_app_dynamics_job(self):
         """
