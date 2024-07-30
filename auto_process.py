@@ -3,37 +3,32 @@ from selenium.webdriver.common.by import By
 import unittest
 import time
 import ddddocr
-import pickle
 from PIL import Image
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-
+from get_email import ReceiveEmail 
 # 参数设置
 MAX_OCR_NUM = 10  # OCR最大重新识别次数
-NAME = "19953199425"  # 用户名
-PWD = "Caoyang5115236"  # 密码
-# NAME = "17353462690"  # 用户名
-# PWD = "dbq$LoDgBoi"  # 密码
 
+def fill_general_info(driver, userName, userPassword):
+    """_summary_
 
-def fill_general_info(driver, NAME, PWD):
+    Args:
+        driver (_type_): 
+        userName (_type_): 用户名
+        userPassword (_type_): 密码
     """
-    填充用户名、密码固定表单
-    :param driver:
-    :param name: 用户名
-    :param pwd:  密码
-    :return:
-    """
+       
     driver.find_element(By.NAME, "userName").click()
-    driver.find_element(By.NAME, "userName").send_keys(NAME)
+    # user_name = input("请输入用户名: ")
+    driver.find_element(By.NAME, "userName").send_keys(userName)
     driver.find_element(By.NAME, "password").click()
-    driver.find_element(By.NAME, "password").send_keys(PWD)
-
-
+    # user_password = input("请输入密码: ")
+    driver.find_element(By.NAME, "password").send_keys(userPassword)
 
 def apply_ocr(driver, is_first=False):
     """
-    # 对算术验证码执行ocr识别操作，识别成功则返回True
+    # 对算术验证码执行ocr识别操作,识别成功则返回True
     :param driver:
     :param is_first: 是否第一次识别（第一次识别不需要刷新验证码）
     :return:
@@ -88,14 +83,28 @@ def get_sms_code(driver):
     :param driver:
     :return:
     """
-    driver.find_element(By.XPATH, "//*[@id='captcha']/span").click()
+    # 获取短信验证码  
+    sms_captcha_input_box_click = driver.find_element(By.XPATH, "//*[@id='captcha']/span")
+    sms_captcha_input_box_click.click()
     sms_captcha_input_box = driver.find_element(By.XPATH, "//*[@id='captcha']/div/input")
     sms_captcha_input_box.click()
     sms_captcha_input_box.clear()
-    time.sleep(2)
+    time.sleep(10)
+    # 这里假设短信验证码是通过短信发送的，可以通过其他方式获取验证码
+    # 输入验证码
+    # verification_code = input("输入验证码：")
+    # sms_captcha_input_box.send_keys(verification_code)
+    verification_code = ReceiveEmail().qe_main()
+    # 如果未找到验证码，提示用户手动输入
+    if not verification_code:
+        print('未获取到短信验证码, 请等待重启脚本或尝试手动输入！')
+    else:
+        # 将验证码输入到验证码输入框
+        sms_captcha_input_box.send_keys(verification_code)
+    time.sleep(5)
 
 # 登录页相关操作
-def login_process(driver):
+def login_process(driver, userName, userPassword):
     """
     登录页的相关操作，操作成功后跳转综调首页
     :param driver:
@@ -103,13 +112,16 @@ def login_process(driver):
     """
     # 固定表单信息
     driver.get("http://10.143.28.206:23007/portal/#/login")
-    fill_general_info(driver, NAME, PWD)
+    fill_general_info(driver, userName, userPassword)
     status = apply_ocr(driver, is_first=True)
     for i in range(MAX_OCR_NUM):
         if status:
             break
         status = apply_ocr(driver)
     get_sms_code(driver)
+    # 登录页面
+    login_skip = driver.find_element(By.XPATH, '//*[@id="app"]/div/div[2]/div/div[2]/form/div[10]/button')
+    login_skip.click()
 
 
 def check_and_click(driver):
@@ -164,7 +176,7 @@ def check_and_click(driver):
         # driver.close()
         return True  # Indicate that the target element was found and clicked
     except Exception as e:
-        print(f"An error occurred: {e}")
+        # print(f"An error occurred: {e}")
         time.sleep(5)
         # driver.close()
         print("当前没有工单！")
@@ -177,7 +189,14 @@ def task_process(driver):
     :param driver:
     :return:
     """
+
+    # 格式化输出时间
+    formatted_start_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(start_time))
+
+    # 打印当前时间
+    print("程序开始运行时间：", formatted_start_time)
     start_time = time.time()  # 记录开始时间
+    time.sleep(5)
     while True:
         check_and_click(driver)
         current_time = time.time()
@@ -190,9 +209,22 @@ def task_process(driver):
 
 
 class AppDynamicsJob(unittest.TestCase):
+    """_summary_
+
+    Args:
+        unittest (_type_): 测试单元
+    """
+    userName = None
+    userPassword = None
     def setUp(self):
+        self.userName = input("请输入用户名: ")
+        self.userPassword = input("请输入密码: ")
+        ReceiveEmail.user_email = input("请输入qq邮箱：")
+        ReceiveEmail.user_email_server_passward = input("请输入IMAP/SMTP服务密码：")
+        print("=========正在登陆...==========")
         self.driver = webdriver.Edge()
         self.driver.implicitly_wait(60)
+        # input("-=============按任意键=============")
         self.base_url = "https://www.google.com/"
         self.verificationErrors = []
         self.accept_next_alert = True
@@ -202,18 +234,18 @@ class AppDynamicsJob(unittest.TestCase):
         主进程
         :return:
         """
-
-        driver = self.driver
-        driver.maximize_window()
-        # 登录操作
-        login_process(driver)
-        # 手动短信验证码预留时间
-        time.sleep(30)
-        # 登录完成跳转
-        driver.find_element(By.XPATH, '//*[@id="app"]/div/div[2]/div/div[2]/form/div[10]/button').click()
-        time.sleep(5)
-        task_process(driver)
+        while True:
+            try:
+                driver = self.driver
+                driver.maximize_window()
+                login_process(driver, self.userName, self.userPassword)
+                task_process(driver)
+            except Exception as e:
+                print("============登陆失败、会话过期或窗口意外关闭，将重新运行脚本！==========")
+                self.driver.quit()
+                self.setUp()  # 重新初始化Web
 
 
 if __name__ == "__main__":
     unittest.main()
+

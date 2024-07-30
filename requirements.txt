@@ -1,0 +1,8 @@
+ddddocr==1.5.5
+opencv_python_headless==4.10.0.84
+pandas==1.5.2
+Pillow==9.3.0
+PyAutoGUI==0.9.0
+PyAutoGUI.egg==info
+pytesseract==0.3.10
+selenium==4.22.0
