@@ -28,7 +28,7 @@ def dynamic_text(text, delay=0.2):
     print()  # 换行
 
 def fill_general_info(driver, userName, userPassword):
-    """_summary_
+    """
 
     Args:
         driver (_type_): 

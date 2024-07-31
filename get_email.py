@@ -70,8 +70,6 @@ class ReceiveEmail:
         # 获取邮件编号列表:
         email_ids = messages[0].split()
 
-        # print('未读邮件的数量', len(email_ids))
-
         # 从最新邮件开始遍历
         for e_id in reversed(email_ids):
             status, msg_data = mail.fetch(e_id, '(RFC822)')
