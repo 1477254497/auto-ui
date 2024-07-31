@@ -10,6 +10,15 @@ import ddddocr
 import sys
 # 参数设置
 MAX_OCR_NUM = 10  # OCR最大重新识别次数
+userName = None
+userPassword = None
+# def chiek_browser_closed(driver):
+#     if  driver.current_url:
+#         dynamic_text("浏览器意外关闭，稍后自动登录...")
+#         AppDynamicsJob.userName = input("请输入用户名: ")
+#         AppDynamicsJob.userPassword = input("请输入密码: ")
+#         ReceiveEmail.user_email = input("请输入qq邮箱：")
+#         ReceiveEmail.user_email_server_passward = input("请输入IMAP/SMTP服务密码：")
 
 def dynamic_text(text, delay=0.2):
     for char in text:
@@ -222,13 +231,17 @@ class AppDynamicsJob(unittest.TestCase):
     Args:
         unittest (_type_): 测试单元
     """
-    userName = None
-    userPassword = None
+    # userName = None
+    # userPassword = None
+    userName = input("请输入用户名: ")
+    userPassword = input("请输入密码: ")
+    ReceiveEmail.user_email = input("请输入qq邮箱：")
+    ReceiveEmail.user_email_server_passward = input("请输入IMAP/SMTP服务密码：")
     def setUp(self):
-        self.userName = input("请输入用户名: ")
-        self.userPassword = input("请输入密码: ")
-        ReceiveEmail.user_email = input("请输入qq邮箱：")
-        ReceiveEmail.user_email_server_passward = input("请输入IMAP/SMTP服务密码：")
+        # self.userName = input("请输入用户名: ")
+        # self.userPassword = input("请输入密码: ")
+        # ReceiveEmail.user_email = input("请输入qq邮箱：")
+        # ReceiveEmail.user_email_server_passward = input("请输入IMAP/SMTP服务密码：")
         # print("=========正在登陆...==========")
         dynamic_text("请稍后，正在登录...")
         self.verificationErrors = []
@@ -249,6 +262,7 @@ class AppDynamicsJob(unittest.TestCase):
                 task_process(driver)
             except Exception as e:
                 print("============登陆失败、会话过期或窗口意外关闭，将重新运行脚本！==========")
+                # chiek_browser_closed(driver)
                 self.driver.quit()
                 self.setUp()  # 重新初始化Web
 
